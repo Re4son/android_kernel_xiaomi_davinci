@@ -256,6 +256,7 @@ struct dsi_panel {
 	bool fod_dimlayer_enabled;
 	bool fod_dimlayer_hbm_enabled;
 	bool fod_ui_ready;
+	bool fod_hbm_status;
 	u32 doze_backlight_threshold;
 	u32 fod_off_dimming_delay;
 	ktime_t fod_backlight_off_time;
@@ -394,5 +395,7 @@ struct dsi_panel *dsi_panel_ext_bridge_get(struct device *parent,
 int dsi_panel_parse_esd_reg_read_configs(struct dsi_panel *panel);
 
 void dsi_panel_ext_bridge_put(struct dsi_panel *panel);
+
+int dsi_panel_set_fod_hbm_backlight(struct dsi_panel *panel, bool status);
 
 #endif /* _DSI_PANEL_H_ */
