@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2019 The Linux Foundation. All rights reserved.
  * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -87,7 +87,6 @@ struct step_chg_info {
 	struct power_supply	*batt_psy;
 	struct power_supply	*bms_psy;
 	struct power_supply	*usb_psy;
-	struct power_supply	*main_psy;
 	struct power_supply	*dc_psy;
 	struct delayed_work	status_change_work;
 	struct delayed_work	get_config_work;
@@ -577,8 +576,9 @@ static int handle_step_chg_config(struct step_chg_info *chip)
 	u64 elapsed_us;
 
 	elapsed_us = ktime_us_delta(ktime_get(), chip->step_last_update_time);
+	/* skip processing, event too early */
 	if (elapsed_us < STEP_CHG_HYSTERISIS_DELAY_US)
-		goto reschedule;
+		return 0;
 
 	rc = power_supply_get_property(chip->batt_psy,
 		POWER_SUPPLY_PROP_STEP_CHARGING_ENABLED, &pval);
@@ -633,10 +633,12 @@ static int handle_step_chg_config(struct step_chg_info *chip)
 	if (!chip->fcc_votable)
 		return -EINVAL;
 
-	if (chip->taper_fcc)
+	if (chip->taper_fcc) {
 		taper_fcc_step_chg(chip, chip->step_index, pval.intval);
-	else
+	} else {
+		fcc_ua = chip->step_chg_config->fcc_cfg[chip->step_index].value;
 		vote(chip->fcc_votable, STEP_CHG_VOTER, true, fcc_ua);
+	}
 
 	pr_debug("%s = %d Step-FCC = %duA taper-fcc: %d\n",
 		chip->step_chg_config->param.prop_name, pval.intval,
@@ -646,10 +648,6 @@ static int handle_step_chg_config(struct step_chg_info *chip)
 update_time:
 	chip->step_last_update_time = ktime_get();
 	return 0;
-
-reschedule:
-	/* reschedule 1000uS after the remaining time */
-	return (STEP_CHG_HYSTERISIS_DELAY_US - elapsed_us + 1000);
 }
 
 static int handle_dynamic_fv(struct step_chg_info *chip)
@@ -757,8 +755,9 @@ static int handle_jeita(struct step_chg_info *chip)
 	}
 
 	elapsed_us = ktime_us_delta(ktime_get(), chip->jeita_last_update_time);
+	/* skip processing, event too early */
 	if (elapsed_us < STEP_CHG_HYSTERISIS_DELAY_US)
-		goto reschedule;
+		return 0;
 
 	if (chip->jeita_fcc_config->param.use_bms)
 		rc = power_supply_get_property(chip->bms_psy,
@@ -841,16 +840,7 @@ set_jeita_fv:
 update_time:
 	chip->jeita_last_update_time = ktime_get();
 
-	if (!chip->main_psy)
-		chip->main_psy = power_supply_get_by_name("main");
-	if (chip->main_psy)
-		power_supply_changed(chip->main_psy);
-
 	return 0;
-
-reschedule:
-	/* reschedule 1000uS after the remaining time */
-	return (STEP_CHG_HYSTERISIS_DELAY_US - elapsed_us + 1000);
 }
 
 static int handle_battery_insertion(struct step_chg_info *chip)
@@ -905,9 +895,7 @@ static void status_change_work(struct work_struct *work)
 
 	/* skip elapsed_us debounce for handling battery temperature */
 	rc = handle_jeita(chip);
-	if (rc > 0)
-		reschedule_jeita_work_us = rc;
-	else if (rc < 0)
+	if (rc < 0)
 		pr_err("Couldn't handle sw jeita rc = %d\n", rc);
 
 	rc = handle_dynamic_fv(chip);
@@ -917,8 +905,6 @@ static void status_change_work(struct work_struct *work)
 		pr_err("Couldn't handle sw dynamic fv rc = %d\n", rc);
 
 	rc = handle_step_chg_config(chip);
-	if (rc > 0)
-		reschedule_step_work_us = rc;
 	if (rc < 0)
 		pr_err("Couldn't handle step rc = %d\n", rc);
 
