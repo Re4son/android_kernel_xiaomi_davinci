@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-#include "dbgprint.h"
-#include "tfa_container.h"
-#include "tfa.h"
-#include "tfa98xx_tfafieldnames.h"
-#include "tfa_internal.h"
+#include "inc/dbgprint.h"
+#include "inc/tfa_container.h"
+#include "inc/tfa.h"
+#include "inc/tfa98xx_tfafieldnames.h"
+#include "inc/tfa_internal.h"
 
 #ifdef __KERNEL__
 	#ifdef pr_fmt
@@ -278,7 +278,7 @@ void tfa_set_query_info(struct tfa_device *tfa)
 		tfa->spkr_count = 1;
 		tfa->is_probus_device = 1;
 		tfa->daimap = Tfa98xx_DAI_TDM;
-		tfa9874_ops(&tfa->dev_ops); /* register device operations */     
+		tfa9874_ops(&tfa->dev_ops); /* register device operations */
 		break;
 	case 0x88:
 		/* tfa9888 */
@@ -548,7 +548,7 @@ enum Tfa98xx_Error tfa98xx_dsp_system_stable(struct tfa_device *tfa, int *ready)
 {
 	enum Tfa98xx_Error error = (tfa->dev_ops.dsp_system_stable)(tfa, ready);
 	pr_debug("%s error=%d  ready=%d\n", __func__, error, *ready);
-	return error; 
+	return error;
 }
 
 /* the ops wrapper for tfa98xx_dsp_system_stable */
@@ -1102,9 +1102,9 @@ tfa_dsp_patch(struct tfa_device *tfa, int patchLength,
 	if (Tfa98xx_Error_Ok != error) {
 		return error;
 	}
-	
+
 	/* for non-dsp solution, we don't need to check ACS. */
-	if (tfa->is_probus_device == 0) {	
+	if (tfa->is_probus_device == 0) {
 		tfa98xx_dsp_system_stable(tfa, &status);
 		if (!status)
 			return Tfa98xx_Error_NoClock;
@@ -2515,7 +2515,7 @@ enum Tfa98xx_Error show_current_state(struct tfa_device *tfa)
 	if (tfa->tfa_family == 2
 #ifndef __KERNEL__
 	 && tfa->verbose
-#endif	
+#endif
 	) {
 		manstate = TFA_GET_BF(tfa, MANSTATE);
 		if (manstate < 0)
@@ -3114,7 +3114,7 @@ error_exit:
 		pr_err("TFA98xx Error code is %d\n", err);
 		return tfa_error_max;
 	}
-	
+
 	return tfa_error_ok;
 }
 
@@ -3152,7 +3152,7 @@ error_exit:
 		pr_err("TFA98xx Error code is %d\n", err);
 		return tfa_error_max;
 	}
-	
+
 	return tfa_error_ok;
 }
 
@@ -3355,7 +3355,7 @@ int tfa_dev_set_swvstep(struct tfa_device *tfa, unsigned short new_value)
 }
 
 /*
-	function overload for MTPB 
+	function overload for MTPB
  */
 int tfa_dev_get_mtpb(struct tfa_device *tfa)
 {

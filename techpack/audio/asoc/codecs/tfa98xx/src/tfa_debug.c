@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-#include "dbgprint.h"
-#include "tfa_service.h"
-#include "tfa98xx_tfafieldnames.h"
+#include "inc/dbgprint.h"
+#include "inc/tfa_service.h"
+#include "inc/tfa98xx_tfafieldnames.h"
 
 /* support for error code translation into text */
 static char latest_errorstr[64];
@@ -227,7 +227,7 @@ char *tfaContDsName(uint16_t num, unsigned short rev)
 		break;
 	case 0x74:
 		name =  tfa_bf2name(Tfa9874DatasheetNames, num);
-		break;        
+		break;
 	case 0x92:
 		name =  tfa_bf2name(Tfa9891DatasheetNames, num);
 		break;
@@ -302,7 +302,7 @@ uint16_t tfaContBfEnum(const char *name, unsigned short rev)
 		bfnum =  tfa_name2bf(Tfa9874DatasheetNames, name);
 		if (bfnum==0xffff)
 			bfnum = tfa_name2bf(Tfa9874BitNames, name);/* try long bitname table */
-		break;        
+		break;
 	case 0x92:
 		bfnum =  tfa_name2bf(Tfa9891DatasheetNames, name);
 		if (bfnum==0xffff)
