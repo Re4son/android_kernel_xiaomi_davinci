@@ -888,6 +888,7 @@ int dsi_panel_enable_doze_backlight(struct dsi_panel *panel, u32 bl_lvl)
 int dsi_panel_set_fod_hbm_backlight(struct dsi_panel *panel, bool status) {
 	u32 bl_level;
 	int rc = 0;
+	struct dsi_display *display;
 
 	if (status == panel->fod_hbm_status)
 		return 0;
@@ -908,7 +909,7 @@ int dsi_panel_set_fod_hbm_backlight(struct dsi_panel *panel, bool status) {
 		dsi_panel_update_backlight(panel, panel->bl_config.bl_level);
 
 		if (panel->doze_state) {
-			dsi_panel_set_doze_backlight(panel, bl_level);
+			dsi_panel_set_doze_backlight(display, panel->bl_config.bl_level);
 		}
 	}
 

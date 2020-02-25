@@ -282,6 +282,8 @@ struct dsi_panel {
 	bool is_tddi_flag;
 	bool panel_dead_flag;
 	bool panel_max_frame_rate;
+
+	bool doze_state;
 };
 
 static inline bool dsi_panel_ulps_feature_enabled(struct dsi_panel *panel)
